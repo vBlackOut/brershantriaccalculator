@@ -80,11 +80,13 @@ func pwm1defer(wg *sync.WaitGroup,  percent1 uint32, pinsstate int, count uint32
     }
 
 	if ((count >= percent1) && (percent1 > 0))  {
+      //time.Sleep((time.Duration(signals) * time.Microsecond))
       lpwm1.SetValue(pinsstate)
 	}
 
 	defer wg.Done()
 	lpwm1.Close()
+
 
 }
 
@@ -97,15 +99,15 @@ func eventHandler(evt gpiod.LineEvent) {
       pinsstate = 0
     }
 
-    if (pinsstate != previous_state){
+    if ((pinsstate != previous_state)){
       var wg sync.WaitGroup
       wg.Add(2)
       go pwm1defer(&wg, percent1, pinsstate, count)
       go pwm2defer(&wg, percent2)
       wg.Wait()
     }
-
-   if (count >= percent1+7){
+   var percent1_2 = 100 - percent1
+   if (count >= percent1+(percent1_2/10)){
      count = 0
    }
 
@@ -142,7 +144,8 @@ func pwm(pins int, pins2 int) (string, error) {
     if input.Text() == "stop" || os.Getenv("pwmSTOP") == "True" {
 				percent1 = uint32(0)
 				percent2 = uint32(0)
-				break
+        time.Sleep((time.Duration(1100) * time.Microsecond))
+        break
     } else {
 
       if strings.Contains(input.Text(), "pwm1") {
